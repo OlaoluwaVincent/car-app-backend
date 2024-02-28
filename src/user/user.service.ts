@@ -15,6 +15,9 @@ export class UserService {
   }
 
   async findOne(id: string) {
+    console.log('id of user', id);
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    console.log(user);
     return {
       name: 'Olaoluwa  Vincent',
       password: 'some password',
