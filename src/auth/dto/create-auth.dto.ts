@@ -9,4 +9,7 @@ export class CreateAuthDto {
 
   @IsOptional()
   password?: string;
+
+  @IsString()
+  role: string;
 }

@@ -33,13 +33,13 @@ export class AuthService {
 
     //  IF NOT SIGNED WITH CREDENTIALS, GENERATE A PASSWORD WITH USERS EMAIL
     const hash = await bcrypt.hash(body.password ?? body.email, salt);
-    console.log(hash);
 
     const newUser = await this.prisma.user.create({
       data: {
         email: body.email,
         hashedPassword: hash,
         name: body.name,
+        role: body.role == 'customer' ? 'USER' : 'PROVIDE',
       },
     });
     if (!newUser) {
@@ -67,8 +67,9 @@ export class AuthService {
     }
 
     const token = await this.signToken({
-      userId: data.password,
-      email: data.email,
+      userId: user.id,
+      email: user.email,
+      role: user.role,
     });
 
     const { hashedPassword, ...result } = user;
@@ -76,7 +77,7 @@ export class AuthService {
   }
 
   // ASSIGN A TOKEN TO USER
-  async signToken(args: { userId: string; email: string }) {
+  async signToken(args: { userId: string; email: string; role: string }) {
     const payload = args;
     return this.jwtService.signAsync(payload, {
       secret: process.env.JWTSECRET,
@@ -85,17 +86,11 @@ export class AuthService {
   }
 
   // THIS IS FOR PASSPORT LOCAL STRATEGY
-  // async validateUser(data: {
-  //   username: string;
-  //   password: string;
-  // }): Promise<any> {
-  //   console.log('validating');
-  //   console.log(data);
-  //   const user = await this.userService.findOne(data.username);
-  //   if (user && user.password === data.password) {
-  //     const { password, ...result } = user;
-  //     return result;
-  //   }
-  //   return null;
-  // }
+  async validateUser(email: string, password: string): Promise<any> {
+    const { result, token } = await this.login({ email, password });
+    if (result) {
+      return { token, ...result };
+    }
+    return null;
+  }
 }

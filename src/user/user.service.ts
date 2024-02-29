@@ -1,12 +1,12 @@
-import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { OnBoardingDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'prisma/prisma.service';
 
 @Injectable()
 export class UserService {
   constructor(private prisma: PrismaService) {}
-  create(createUserDto: CreateUserDto) {
+  create(createUserDto: OnBoardingDto) {
     return 'This action adds a new user';
   }
 
@@ -15,13 +15,11 @@ export class UserService {
   }
 
   async findOne(id: string) {
-    console.log('id of user', id);
-    const user = await this.prisma.user.findUnique({ where: { id } });
-    console.log(user);
-    return {
-      name: 'Olaoluwa  Vincent',
-      password: 'some password',
-    };
+    const user = await this.prisma.user.findUnique({ where: { email: id } });
+    if (!user) {
+      throw new BadRequestException('Invalid Id');
+    }
+    return user;
   }
 
   update(id: string, updateUserDto: UpdateUserDto) {

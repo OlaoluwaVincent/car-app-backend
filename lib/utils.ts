@@ -1,3 +1,4 @@
+import { SetMetadata } from '@nestjs/common';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
 import { DocumentBuilder, SwaggerDocumentOptions } from '@nestjs/swagger';
 
@@ -18,3 +19,7 @@ export const config = new DocumentBuilder()
   .setVersion('1.0')
   .addTag('Cars')
   .build();
+
+// CUSTOM DECORATORS
+export const IS_PUBLIC_KEY = 'isPublic';
+export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
