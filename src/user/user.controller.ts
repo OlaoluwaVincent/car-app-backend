@@ -1,31 +1,32 @@
 import {
   Controller,
   Get,
-  Post,
   Body,
   Patch,
   Param,
   Delete,
-  UseGuards,
   Req,
+  UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { OnBoardingDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Request } from 'express';
 import { Role, Roles } from 'src/auth/roles.decorator';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { RolesGuard } from 'src/auth/roles.guard';
 
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Roles(Role.User)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Admin)
   @Get()
   findAll(@Req() req: Request) {
     return this.userService.findAll();
   }
 
-  @Roles(Role.Customer)
   @Get(':id')
   findOne(@Req() req: Request, @Param('id') id: string) {
     return this.userService.findOne(id);

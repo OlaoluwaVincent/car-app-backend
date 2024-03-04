@@ -9,14 +9,16 @@ import { RolesGuard } from 'src/auth/roles.guard';
   controllers: [UserController],
   providers: [
     UserService,
-    {
-      provide: APP_GUARD,
-      useClass: JwtAuthGuard,
-    },
-    {
-      provide: APP_GUARD,
-      useClass: RolesGuard,
-    },
+    JwtAuthGuard,
+    RolesGuard,
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: JwtAuthGuard,
+    // },
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: RolesGuard,
+    // },
   ],
   exports: [UserService],
 })
