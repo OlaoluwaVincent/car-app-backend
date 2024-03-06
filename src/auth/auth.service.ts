@@ -28,8 +28,7 @@ export class AuthService {
       throw new BadRequestException('User already exists, please login');
     }
 
-    const saltOrRounds = 10;
-    const salt = await bcrypt.genSalt(saltOrRounds);
+    const salt = await bcrypt.genSalt(10);
 
     //  IF NOT SIGNED WITH CREDENTIALS, GENERATE A PASSWORD WITH USERS EMAIL
     const hash = await bcrypt.hash(body.password ?? body.email, salt);
@@ -58,12 +57,12 @@ export class AuthService {
       where: { email: data.email },
     });
     if (!user) {
-      throw new UnauthorizedException('Invalid email or password.');
+      throw new BadRequestException('Invalid email or password.');
     }
 
     const isMatch = await bcrypt.compare(data.password, user.hashedPassword);
     if (!isMatch) {
-      throw new UnauthorizedException('Invalid email or password.');
+      throw new BadRequestException('Invalid email or password.');
     }
 
     const token = await this.signToken({
