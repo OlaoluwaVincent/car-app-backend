@@ -1,8 +1,10 @@
+## NESTJS PROJECT by OLAOLUWA VINCENT
+
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
 </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
+<!-- [circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
 [circleci-url]: https://circleci.com/gh/nestjs/nest
 
   <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
@@ -18,9 +20,9 @@
   <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
     <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
   <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+</p> -->
+  <!-- [![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
+  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor) -->
 
 ## Description
 
@@ -45,29 +47,46 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
-## Test
+## Project Overview
 
-```bash
-# unit tests
-$ npm run test
+This project aims to facilitate seamless communication between renters and rentees for car services.
 
-# e2e tests
-$ npm run test:e2e
+It allows users to easily put a car up for rent or rent a car with just a few clicks. This rental service provider aims to streamline the process and allow users to focus more on enjoying their ride, rather than worrying about how to obtain one. Additionally, it provides peace of mind to renters by ensuring that the rentee is well-verified and that their cars are in good hands.
 
-# test coverage
-$ npm run test:cov
-```
+### Authentication Workflow
 
-## Support
+1. Users are verified using LocalPassport and JWT. When users log in with their credentials, they are authenticated with LocalPassport.
+2. Upon successful login, users' roles are set in the request (req.user) based on the roles assigned during account creation.
+3. Subsequent queries are authenticated using JWT tokens in the request header. Upon successful validation, the AuthGuard checks for roles through Request.User and authorizes the user to access the requested resource.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+---
 
-## Stay in touch
+### User Workflow
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+1. Users can update their details except for their email for security reasons.
+2. Users can upload their profile picture, which is handled with Cloudinary.
+3. Users can delete their account.
+4. Other users can view one's profile with limited information.
 
-## License
+## Next Steps
 
-Nest is [MIT licensed](LICENSE).
+The following tasks will be addressed next as the project progresses:
+
+### CAR Model
+
+- Set up the model for CARS.
+- Create routes for populating a car for the rentee.
+- Allow rentees to rent a car.
+- Enable renters to approve the rent and follow through with delivering the car to the rentee based on the time and place specified in the rental details.
+- Rentees should accept the car upon delivery to start the countdown.
+- Email notifications should be sent to both renters and rentees regarding this transaction.
+
+#### General workfllow
+
+- A user rents a car by specifying the place and location of delivery along with payment and damages fee (which would be refunded if no damages occur).
+- The owner of the car receives an email notification about this request. The owner can then accept/decline (with reason) the request.
+- If the request is declined, a refund is issued to the user with a notification email.
+- If the request is approved, the car will be delivered on the specified date (with an email sent hours before the scheduled time).
+- Upon delivery, the user must accept the car, which starts the countdown until the car is to be returned or picked up as specified in the request.
+- In case of damages, the user will be charged accordingly.
+- Should there be damages, user will be charged for it
