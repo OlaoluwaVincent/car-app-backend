@@ -57,25 +57,25 @@ export async function uploadImage(image: Express.Multer.File, folder: string) {
 }
 
 export async function uploadMultipleImages(images: Array<Express.Multer.File>) {
+  if (!images) {
+    return null;
+  }
+
   try {
     cloudinary.config({
       cloud_name: jwt_constants.cloud_name,
       api_key: jwt_constants.api_key,
       api_secret: jwt_constants.api_secret,
     });
-    if (images) {
-      const uploadedImages = await Promise.all(
-        images.map((file) =>
-          cloudinary.uploader.upload(file.path, { folder: 'car_mages' }),
-        ),
-      );
-      const secureUrls = uploadedImages.map((image) => image.secure_url);
+    const uploadedImages = await Promise.all(
+      images.map((file) =>
+        cloudinary.uploader.upload(file.path, { folder: 'car_images' }),
+      ),
+    );
+    const secureUrls = uploadedImages.map((image) => image.secure_url);
 
-      // Return the secure URLs in the response
-      return secureUrls;
-    } else {
-      return null;
-    }
+    // Return the secure URLs in the response
+    return secureUrls;
   } catch (error) {
     console.error('Error uploading image to Cloudinary:', error);
     throw new Error('Failed to upload image');

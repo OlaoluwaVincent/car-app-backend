@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  HttpStatus,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -107,6 +108,42 @@ export class UserService {
     const userToDelete = await this.prisma.user.delete({ where: { id: id } });
 
     return { message: 'User deleted successfully' };
+  }
+
+  async notifications(userId: string) {
+    // *GET ALL UNREAD NOTIFICATION
+    const all_notifications = await this.prisma.userNotification.findMany({
+      where: { ownerId: userId, AND: { readStatus: false } },
+    });
+
+    if (!all_notifications) {
+      throw new BadRequestException('Failed to get Notifications for the user');
+    }
+
+    const notifications = all_notifications.map((n) => {
+      const { id, notificationClip } = n;
+      return { id, notificationClip };
+    });
+    return { status: HttpStatus.OK, notifications };
+  }
+
+  async notification(userId: string, notificationId: string) {
+    const one_notification = await this.prisma.userNotification.findUnique({
+      where: { id: notificationId, AND: { ownerId: userId } },
+    });
+
+    if (!one_notification) {
+      throw new BadRequestException('Failed to get Notification');
+    }
+    // * MODIFY THE NOTIFICATION STATUS TO `READ`
+    await this.prisma.userNotification.update({
+      where: { id: one_notification.id },
+
+      data: { readStatus: true },
+    });
+
+    const { ownerId, ...result } = one_notification;
+    return { status: HttpStatus.OK, notification: result };
   }
 
   // * HELPER FUNCTIONS

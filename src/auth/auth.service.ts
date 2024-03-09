@@ -13,7 +13,6 @@ import { PrismaService } from 'prisma/prisma.service';
 @Injectable()
 export class AuthService {
   constructor(
-    private userService: UserService,
     private jwtService: JwtService,
     private prisma: PrismaService,
   ) {}
@@ -39,8 +38,16 @@ export class AuthService {
         hashedPassword: hash,
         name: body.name,
         role: body.role == 'customer' ? 'USER' : 'PROVIDE',
+        notification: {
+          create: {
+            notificationText: `V'Rent Welcomes you onboard`,
+            notificationClip:
+              '<b>Welcome</b> please kindly update your profile in the profile section of this app to allow for seamless and uninterrupted services',
+          },
+        },
       },
     });
+
     if (!newUser) {
       throw new BadRequestException('Error creating account, try again!!');
     }

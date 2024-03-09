@@ -32,12 +32,6 @@ export class UserController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.userService.findOne(id);
-  }
-
-  @UseGuards(JwtAuthGuard)
   @Patch(':id')
   @UseInterceptors(FileInterceptor('profileImage', { storage }))
   update(
@@ -53,5 +47,28 @@ export class UserController {
   @Delete(':id')
   remove(@Req() req: Request, @Param('id') id: string) {
     return this.userService.remove(req, id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('notifications')
+  notifications(@Req() req: Request) {
+    const { userId } = req.user;
+    return this.userService.notifications(userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('notifications/:notificationId')
+  notification(
+    @Req() req: Request,
+    @Param('notificationId') notificationId: string,
+  ) {
+    const { userId } = req.user;
+    return this.userService.notification(userId, notificationId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.userService.findOne(id);
   }
 }

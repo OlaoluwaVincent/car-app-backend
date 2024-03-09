@@ -15,6 +15,15 @@ enum UserRole {
   ADMIN
 }
 
+model UserNotification{
+  id                         String      @id @default(uuid())
+  notificationText           String?
+  notificationClip           String?
+  User                       User @relation(fields: [ownerId], references: [id])
+  ownerId                    String
+  readStatus                 Boolean @default(false)
+}
+
 model User {
   id             String      @id @default(uuid())
   email          String      @unique
@@ -26,6 +35,49 @@ model User {
   state          String      @default("")
   region         String      @default("")
 
-  // carsOwned      Car[]
+  // A USER CAN HAVE MANY CARS
+  carsOwned      Car[]
+  notification   UserNotification[]
   // rentedCars     RentedCar[]
-  }
+}
+
+
+
+model CarImage {
+  id     String   @id @default(uuid())
+  images String[]
+  // An Image must be assigned to one Car
+  car    Car   @relation(fields: [carImageId], references: [id], onDelete: Cascade)
+  carImageId  String @unique
+}
+
+
+
+model Car {
+  id             String     @id @default(uuid())
+  name           String
+  carType        String
+  steering       String
+  capacity       String
+  gasoline       String
+  amount         String
+  description    String
+  rented         Boolean     @default(false)
+  tag            String?
+  tagDescription String?
+  region         String
+  state          String
+
+  
+//* A CAR MUST ALWAYS HAVE A USER
+  User           User @relation(fields: [ownerId], references: [id])
+  ownerId        String
+  
+  
+//* A CAR CAN ONLY HAVE ONE IMAGE MODEL
+  carImage       CarImage?  
+
+  // car    RentedCar?
+}
+
+

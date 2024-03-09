@@ -1,34 +1,67 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  UseInterceptors,
+  UploadedFiles,
+  Req,
+  Res,
+  BadRequestException,
+} from '@nestjs/common';
 import { CarsService } from './cars.service';
 import { CreateCarDto } from './dto/create-car.dto';
 import { UpdateCarDto } from './dto/update-car.dto';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { storage } from 'src/user/multer.config';
+import { Request, Response } from 'express';
+import { Role, Roles } from 'src/auth/roles.decorator';
+import { RolesGuard } from 'src/auth/roles.guard';
 
 @Controller('cars')
 export class CarsController {
   constructor(private readonly carsService: CarsService) {}
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Customer)
   @Post()
-  create(@Body() createCarDto: CreateCarDto) {
-    return this.carsService.create(createCarDto);
+  @UseInterceptors(FilesInterceptor('images', 4, { storage }))
+  create(
+    @Body() createCarDto: CreateCarDto,
+    @UploadedFiles() image: Express.Multer.File[],
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
+    if (!image.length) {
+      throw new BadRequestException('Please uploaded messages');
+    }
+    return this.carsService.create(createCarDto, image, req, res);
   }
 
   @Get()
-  findAll() {
-    return this.carsService.findAll();
+  findAll(@Res() res: Response) {
+    return this.carsService.findAll(res);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.carsService.findOne(+id);
+  findOne(@Res() res: Response, @Param('id') id: string) {
+    return this.carsService.findOne(res, id);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Customer)
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateCarDto: UpdateCarDto) {
-    return this.carsService.update(+id, updateCarDto);
+    return this.carsService.update(id, updateCarDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.carsService.remove(+id);
+  remove(@Res() res: Response, @Param('id') id: string) {
+    return this.carsService.remove(res, id);
   }
 }
