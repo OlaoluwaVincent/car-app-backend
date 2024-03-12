@@ -45,7 +45,7 @@ model User {
 
 model CarImage {
   id     String   @id @default(uuid())
-  images String[]
+  images Json
   // An Image must be assigned to one Car
   car    Car   @relation(fields: [carImageId], references: [id], onDelete: Cascade)
   carImageId  String @unique

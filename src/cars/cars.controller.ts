@@ -12,6 +12,7 @@ import {
   Req,
   Res,
   BadRequestException,
+  Put,
 } from '@nestjs/common';
 import { CarsService } from './cars.service';
 import { CreateCarDto } from './dto/create-car.dto';
@@ -56,12 +57,23 @@ export class CarsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Customer)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCarDto: UpdateCarDto) {
-    return this.carsService.update(id, updateCarDto);
+  @UseInterceptors(FilesInterceptor('images', 4, { storage }))
+  update(
+    @Res() res: Response,
+    @Param('id') id: string,
+    @Body() updateCarDto: UpdateCarDto,
+    @UploadedFiles() image: Express.Multer.File[],
+  ) {
+    return this.carsService.update(res, id, updateCarDto, image);
   }
 
   @Delete(':id')
   remove(@Res() res: Response, @Param('id') id: string) {
     return this.carsService.remove(res, id);
+  }
+
+  @Get('images/:id')
+  fetchImage(@Res() res: Response, @Param('id') id: string) {
+    return this.carsService.findImages(res, id);
   }
 }

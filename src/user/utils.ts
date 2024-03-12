@@ -2,6 +2,8 @@ import { jwt_constants } from '../auth/constants';
 import { Request } from 'express';
 
 import { v2 as cloudinary } from 'cloudinary';
+import { Prisma } from '@prisma/client';
+import { Image } from 'src/typings';
 // import * as sgMail from '@sendgrid/mail';
 
 // sgMail.setApiKey(process.env.SENDGRID_SECRET);
@@ -72,14 +74,52 @@ export async function uploadMultipleImages(images: Array<Express.Multer.File>) {
         cloudinary.uploader.upload(file.path, { folder: 'car_images' }),
       ),
     );
-    const secureUrls = uploadedImages.map((image) => image.secure_url);
+    const imageData = uploadedImages.map((image) => ({
+      url: image.secure_url,
+      public_id: image.public_id,
+    }));
 
     // Return the secure URLs in the response
-    return secureUrls;
+    return imageData;
   } catch (error) {
     console.error('Error uploading image to Cloudinary:', error);
     throw new Error('Failed to upload image');
   }
+}
+
+export const getImgIdToDelete = (imagesData: Prisma.JsonValue) => {
+  // * MAP OUT THE CLOUDINARY PUBLIC_ID FROM THE IMAGE DB
+  const imgs: Image[] = (imagesData as unknown[]).map((item) => {
+    const image = item as { url: string; public_id: string };
+    return {
+      url: image.url,
+      public_id: image.public_id,
+    };
+  });
+  return imgs;
+};
+
+export async function destroyExistingImage(
+  imagesId: string[] | Prisma.JsonArray,
+) {
+  cloudinary.config({
+    cloud_name: jwt_constants.cloud_name,
+    api_key: jwt_constants.api_key,
+    api_secret: jwt_constants.api_secret,
+  });
+  // * IF NO IMAGES DO NOT PROCEEED
+  if (!imagesId.length) {
+    return null;
+  }
+
+  const isDeleted = await Promise.all(
+    imagesId.map(async (id: string) => {
+      const result = await cloudinary.uploader.destroy(id);
+      return result;
+    }),
+  );
+
+  return isDeleted;
 }
 
 // export async function sendGridMail(email: string, dynamicData: any) {

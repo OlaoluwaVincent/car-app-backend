@@ -11,3 +11,8 @@ export type User = {
   email: string;
   role: string;
 };
+
+export interface Image {
+  url: string;
+  public_id: string;
+}
