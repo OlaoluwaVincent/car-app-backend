@@ -7,6 +7,7 @@ import { AnalyticsModule } from './analytics/analytics.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from 'prisma/prisma.module';
+import { HireModule } from './hire/hire.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { PrismaModule } from 'prisma/prisma.module';
     AnalyticsModule,
     AuthModule,
     PrismaModule,
+    HireModule,
   ],
   controllers: [AppController],
   providers: [AppService],
