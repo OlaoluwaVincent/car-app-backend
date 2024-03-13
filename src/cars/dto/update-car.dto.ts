@@ -92,6 +92,14 @@ export class UpdateCarDto {
   bags?: string;
 
   @ApiProperty({
+    example: '3',
+    description: 'Bags',
+  })
+  @IsString()
+  @IsOptional()
+  pricePerKM?: string;
+
+  @ApiProperty({
     example: '3 Bags',
     description: 'Bags',
   })

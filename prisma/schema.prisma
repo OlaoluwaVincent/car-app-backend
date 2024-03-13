@@ -70,6 +70,7 @@ model Car {
   cancellation   Boolean?    @default(true)
   mileage        String?
   bags           String?
+  pricePerKM     String?     @default("")
   extras         Json?
 
 
