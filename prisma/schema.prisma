@@ -67,6 +67,11 @@ model Car {
   tagDescription String?
   region         String
   state          String
+  cancellation   Boolean?    @default(true)
+  mileage        String?
+  bags           String?
+  extras         Json?
+
 
   
 //* A CAR MUST ALWAYS HAVE A USER

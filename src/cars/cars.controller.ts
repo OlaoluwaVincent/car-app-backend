@@ -12,7 +12,6 @@ import {
   Req,
   Res,
   BadRequestException,
-  Put,
 } from '@nestjs/common';
 import { CarsService } from './cars.service';
 import { CreateCarDto } from './dto/create-car.dto';
@@ -67,6 +66,8 @@ export class CarsController {
     return this.carsService.update(res, id, updateCarDto, image);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Customer)
   @Delete(':id')
   remove(@Res() res: Response, @Param('id') id: string) {
     return this.carsService.remove(res, id);

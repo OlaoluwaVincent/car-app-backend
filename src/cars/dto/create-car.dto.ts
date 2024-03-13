@@ -1,5 +1,26 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsBoolean,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
+
+export class ExtrasDto {
+  @IsString()
+  name: string;
+
+  @IsString()
+  price: string;
+
+  @IsString()
+  description: string;
+
+  @IsString()
+  @IsOptional()
+  time_of_payment?: 'Now' | 'Pickup';
+}
 
 export class CreateCarDto {
   @ApiProperty({
@@ -81,5 +102,37 @@ export class CreateCarDto {
   @IsString()
   region: string;
 
-  images: any;
+  @ApiProperty({
+    example: 'Free Cancellation',
+    description:
+      'Are users allowed to cancel their order for free after booking?',
+  })
+  @IsBoolean()
+  @IsOptional()
+  cancellation?: boolean;
+
+  @ApiProperty({
+    example: '2000km/day',
+    description:
+      'How many kilometers are the users allowed, if set, then you must set price per KM, if not set, Unlimited mileage will be displayed to the Rentee',
+  })
+  @IsString()
+  @IsOptional()
+  mileage?: string;
+
+  @ApiProperty({
+    example: '3',
+    description: 'Bags',
+  })
+  @IsString()
+  @IsOptional()
+  bags?: string;
+
+  @ApiProperty({
+    example: '3 Bags',
+    description: 'Bags',
+  })
+  @IsOptional()
+  @ValidateNested()
+  extras?: ExtrasDto[];
 }

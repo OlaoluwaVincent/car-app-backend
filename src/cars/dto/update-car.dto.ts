@@ -1,6 +1,20 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateCarDto } from './create-car.dto';
-import { IsOptional, IsString } from 'class-validator';
+import { IsArray, IsBoolean, IsOptional, IsString } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+
+export class ExtrasDto {
+  @IsString()
+  name: string;
+
+  @IsString()
+  price: string;
+
+  @IsString()
+  description: string;
+
+  @IsString()
+  @IsOptional()
+  paymentTime?: 'Now' | 'Pickup';
+}
 
 export class UpdateCarDto {
   @IsString()
@@ -50,4 +64,38 @@ export class UpdateCarDto {
   @IsOptional()
   @IsString()
   deleteCarIds?: string[];
+
+  @ApiProperty({
+    example: 'Free Cancellation',
+    description:
+      'Are users allowed to cancel their order for free after booking?',
+  })
+  @IsBoolean()
+  @IsOptional()
+  cancellation?: boolean;
+
+  @ApiProperty({
+    example: '2000km/day',
+    description:
+      'How many kilometers are the users allowed, if set, then you must set price per KM, if not set, Unlimited mileage will be displayed to the Rentee',
+  })
+  @IsString()
+  @IsOptional()
+  mileage?: string;
+
+  @ApiProperty({
+    example: '3',
+    description: 'Bags',
+  })
+  @IsString()
+  @IsOptional()
+  bags?: string;
+
+  @ApiProperty({
+    example: '3 Bags',
+    description: 'Bags',
+  })
+  @IsArray()
+  @IsOptional()
+  extras?: ExtrasDto[];
 }

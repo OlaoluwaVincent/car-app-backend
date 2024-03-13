@@ -31,10 +31,21 @@ export class CarsService {
       throw new BadRequestException('Failed to Upload Images');
     }
 
+    const extras: Prisma.JsonArray = createCarDto.extras
+      ? createCarDto.extras.map((extra) => ({
+          name: extra.name,
+          price: extra.price,
+          description: extra.description,
+          time_of_payment: extra.time_of_payment,
+        }))
+      : null;
+
+    console.log(extras);
     // Populate the car
     const car = await this.prisma.car.create({
       data: {
         ...createCarDto,
+        extras,
         carImage: {
           create: {
             images: imageUrl,
@@ -115,8 +126,6 @@ export class CarsService {
     if (deletedIds !== undefined && deletedIds.length > 0) {
       await destroyExistingImage(deletedIds);
     }
-    //! Do this to prevent prisma error field for deletedCarIds
-    delete update_data.deleteCarIds;
 
     //* Filter out deleted images from the existing images
     const existingImages = (
@@ -128,26 +137,43 @@ export class CarsService {
     //* Combine existing images with newly uploaded images
     const updatedImages = [...existingImages, ...image_url];
 
-    // * UPDATING USER DB WITH THE NEW UPLOADED IMAGES AND THE OTHER FIELDS
-    // ? THE NEW UPLOADED DATA IS WHAT IS RETURNED TO THE USER WITH THE EXISTING ONES
-    const update_car = await this.prisma.car.update({
-      where: { id: car_to_update.id },
-      data: {
-        ...update_data,
-        carImage: {
-          update: {
-            images: updatedImages,
-          },
-        },
-      },
-    });
-    if (!update_car) {
-      throw new BadRequestException('Something went wrong with this update');
+    let extras: Prisma.JsonArray;
+    if (updateCarDto.extras) {
+      extras = updateCarDto.extras.map((extra) => ({
+        name: extra.name,
+        price: extra.price,
+        description: extra.description,
+        time_of_payment: extra.paymentTime,
+      }));
     }
+
+    //! Do this to prevent prisma error field for deletedCarIds
+    delete update_data.deleteCarIds;
+    delete update_data.extras;
+
+    console.log(extras);
+
+    // * UPDATING USER DB WITH THE NEW UPLOADED IMAGES AND THE OTHER FIELDS
+    // // ? THE NEW UPLOADED DATA IS WHAT IS RETURNED TO THE USER WITH THE EXISTING ONES
+    // const update_car = await this.prisma.car.update({
+    //   where: { id: car_to_update.id },
+    //   data: {
+    //     ...update_data,
+    //     extras,
+    //     carImage: {
+    //       update: {
+    //         images: updatedImages,
+    //       },
+    //     },
+    //   },
+    // });
+    // if (!update_car) {
+    //   throw new BadRequestException('Something went wrong with this update');
+    // }
 
     return res
       .status(HttpStatus.OK)
-      .json({ result: update_car.id, message: 'Updated Successfully' });
+      .json({ result: 'update_car.id', message: 'Updated Successfully' });
   }
 
   async remove(res: Response, id: string) {
