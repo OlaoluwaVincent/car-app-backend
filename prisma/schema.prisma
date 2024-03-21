@@ -15,46 +15,55 @@ enum UserRole {
   ADMIN
 }
 
-model UserNotification{
-  id                         String      @id @default(uuid())
-  notificationText           String?
-  notificationClip           String?
-  User                       User @relation(fields: [ownerId], references: [id])
-  ownerId                    String
-  readStatus                 Boolean @default(false)
+model UserNotification {
+  id               String  @id @default(uuid())
+  notificationText String?
+  notificationClip String?
+  User             User    @relation(fields: [ownerId], references: [id])
+  ownerId          String
+  readStatus       Boolean @default(false)
+}
+
+model BilingAddress {
+  id         String  @id @default(uuid())
+  name       String
+  contact    String
+  region     String
+  state      String?
+  country    String
+  postalCode String
+  user       User?
 }
 
 model User {
-  id             String      @id @default(uuid())
-  email          String      @unique
+  id             String   @id @default(uuid())
+  email          String   @unique
   name           String
-  role           UserRole    @default(USER)
+  role           UserRole @default(USER)
   hashedPassword String?
-  address        String      @default("")
-  profileImg     String      @default("")
-  state          String      @default("")
-  region         String      @default("")
+  profileImg     String   @default("")
 
-  // A USER CAN HAVE MANY CARS
-  carsOwned      Car[]
-  notification   UserNotification[]
+  // One to One
+  billingAddress BilingAddress? @relation(fields: [billingId], references: [id])
+  billingId      String?        @unique @default(uuid())
+
+  // One to Many
+  carsOwned    Car[]
+  carsHired    HiredCar[]
+  notification UserNotification[]
   // rentedCars     RentedCar[]
 }
 
-
-
 model CarImage {
-  id     String   @id @default(uuid())
-  images Json
+  id         String @id @default(uuid())
+  images     Json
   // An Image must be assigned to one Car
-  car    Car   @relation(fields: [carImageId], references: [id], onDelete: Cascade)
-  carImageId  String @unique
+  car        Car    @relation(fields: [carImageId], references: [id], onDelete: Cascade)
+  carImageId String @unique
 }
 
-
-
 model Car {
-  id             String     @id @default(uuid())
+  id             String   @id @default(uuid())
   name           String
   carType        String
   steering       String
@@ -62,28 +71,43 @@ model Car {
   gasoline       String
   amount         String
   description    String
-  rented         Boolean     @default(false)
+  rented         Boolean  @default(false)
   tag            String?
   tagDescription String?
   region         String
   state          String
-  cancellation   Boolean?    @default(true)
+  cancellation   Boolean? @default(true)
   mileage        String?
   bags           String?
-  pricePerKM     String?     @default("")
+  pricePerKM     String?  @default("")
   extras         Json?
+  discount       String?  @default("")
+  discountPrice  String?  @default("")
+  freeDriver     Boolean? @default(false)
 
+  //* A CAR MUST ALWAYS HAVE A USER
+  User       User      @relation(fields: [ownerId], references: [id])
+  ownerId    String
+  // One to One
+  hired      HiredCar? @relation(fields: [carHiredId], references: [id])
+  carHiredId String?   @unique
 
-  
-//* A CAR MUST ALWAYS HAVE A USER
-  User           User @relation(fields: [ownerId], references: [id])
-  ownerId        String
-  
-  
-//* A CAR CAN ONLY HAVE ONE IMAGE MODEL
-  carImage       CarImage?  
-
-  // car    RentedCar?
+  //* A CAR CAN ONLY HAVE ONE IMAGE MODEL
+  carImage CarImage?
 }
 
+model HiredCar {
+  id             String  @id @default(uuid())
+  pickupAddress  String
+  dropoffAddress String
+  extras         Json?
+  payNowPrice    String
+  payLaterPrice  String
+  isAccepted     Boolean @default(false)
+  userCancelled  Boolean @default(false)
 
+  carHiredId Car?
+
+  User     User   @relation(fields: [renterId], references: [id])
+  renterId String @unique
+}

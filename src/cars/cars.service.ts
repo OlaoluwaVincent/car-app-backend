@@ -40,11 +40,21 @@ export class CarsService {
         }))
       : null;
 
-    console.log(extras);
+    //* Calculate Discount
+    let discountPrice: string;
+    if (createCarDto.discount) {
+      const dis = Number(createCarDto.discount);
+      const price = createCarDto.amount;
+
+      const numberWithoutComma = parseInt(price.replace(/,/g, ''));
+      discountPrice = String((numberWithoutComma * dis) / 100);
+    }
+
     // Populate the car
     const car = await this.prisma.car.create({
       data: {
         ...createCarDto,
+        discountPrice: discountPrice,
         extras,
         carImage: {
           create: {
@@ -66,7 +76,10 @@ export class CarsService {
   }
 
   async findAll(res: Response) {
-    const cars = await this.prisma.car.findMany({ select: { id: true } });
+    const cars = await this.prisma.car.findMany({
+      select: { id: true },
+      where: { rented: false },
+    });
 
     return res
       .status(HttpStatus.CREATED)
@@ -110,7 +123,7 @@ export class CarsService {
     }[] = [];
 
     //* Extract IDs of images to be deleted
-    let deletedIds = [];
+    let deletedIds: string[] = [];
     if (update_data.deleteCarIds !== undefined || null || '') {
       deletedIds = Array.isArray(update_data.deleteCarIds)
         ? update_data.deleteCarIds
@@ -151,12 +164,25 @@ export class CarsService {
     delete update_data.deleteCarIds;
     delete update_data.extras;
 
+    //* Calculate Discount
+    let discountPrice: string;
+    if (updateCarDto.discount) {
+      const dis = Number(updateCarDto.discount);
+      const price = updateCarDto.amount
+        ? updateCarDto.amount
+        : car_to_update.amount;
+
+      const numberWithoutComma = parseInt(price.replace(/,/g, ''));
+      discountPrice = String((numberWithoutComma * dis) / 100);
+    }
+
     // * UPDATING USER DB WITH THE NEW UPLOADED IMAGES AND THE OTHER FIELDS
     // // ? THE NEW UPLOADED DATA IS WHAT IS RETURNED TO THE USER WITH THE EXISTING ONES
     const update_car = await this.prisma.car.update({
       where: { id: car_to_update.id },
       data: {
         ...update_data,
+        discountPrice: discountPrice,
         extras,
         carImage: {
           update: {

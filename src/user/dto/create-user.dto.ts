@@ -1,9 +1,27 @@
-import { IsString } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 
 export class OnBoardingDto {
   @IsString()
-  state: string;
+  @IsOptional()
+  name?: string;
 
   @IsString()
-  region: string;
+  @IsOptional()
+  contact?: string;
+
+  @IsString()
+  @IsOptional()
+  state?: string;
+
+  @IsString()
+  @IsOptional()
+  country?: string;
+
+  @IsString()
+  @IsOptional()
+  postalCode?: string;
+
+  @IsString()
+  @IsOptional()
+  region?: string;
 }

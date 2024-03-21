@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   HttpStatus,
   Injectable,
   NotFoundException,
@@ -7,15 +8,81 @@ import {
 } from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'prisma/prisma.service';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import * as bcrypt from 'bcrypt';
-import { updateImage } from './utils';
+import { uploadProfileImage } from './utils';
+import { OnBoardingDto } from './dto/create-user.dto';
 
 @Injectable()
 export class UserService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll() {
+  async createOrUpdateBillingAddress(
+    req: Request,
+    res: Response,
+    onBoarding: OnBoardingDto,
+  ) {
+    const { userId } = req.user;
+
+    const exitingAddress = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { billingId: true },
+    });
+
+    if (exitingAddress.billingId) {
+      await this.prisma.bilingAddress.update({
+        where: { id: exitingAddress.billingId },
+        data: { ...onBoarding },
+      });
+      return res
+        .status(HttpStatus.CREATED)
+        .json({ message: 'Billing address updated successfullly' });
+    }
+    console.log(onBoarding);
+
+    //* CREATE AND CONNECT THE ADDRESS TO THE CURRENT LOGGED-IN USER
+    const { contact, country, name, postalCode, region, state } = onBoarding;
+    const billingAddress = await this.prisma.bilingAddress.create({
+      data: {
+        state: state,
+        contact: contact,
+        country: country,
+        name: name,
+        postalCode: postalCode,
+        region: region,
+        user: {
+          connect: { id: userId },
+        },
+      },
+    });
+
+    if (!billingAddress) {
+      throw new BadRequestException('Failed to create user billing address');
+    }
+    await this.prisma.userNotification.create({
+      data: {
+        notificationText: `Billing Address`,
+        notificationClip:
+          'Hi there!, You have successsfully added your Billing Address. <br/> Enjoy a seamless service',
+        User: { connect: { id: userId } },
+      },
+    });
+
+    return res.status(HttpStatus.CREATED).json({ result: billingAddress.id });
+  }
+
+  async findBillingAddress(id: string, res: Response) {
+    const billingAddress = await this.prisma.bilingAddress.findUnique({
+      where: { id: id },
+    });
+
+    if (!billingAddress) {
+      throw new NotFoundException('Invalid billing address ID' + id);
+    }
+    return res.status(HttpStatus.CREATED).json({ result: billingAddress });
+  }
+
+  async findAll(res: Response) {
     const [userIds, userCount] = await Promise.all([
       this.prisma.user.findMany({
         select: {
@@ -25,7 +92,7 @@ export class UserService {
       this.prisma.user.count(),
     ]);
 
-    return { userIds, userCount };
+    return res.status(HttpStatus.OK).json({ result: { userIds, userCount } });
   }
 
   async findOne(id: string) {
@@ -39,19 +106,16 @@ export class UserService {
 
   async update(
     req: Request,
+    res: Response,
     id: string,
     updateUserDto: UpdateUserDto,
     image: Express.Multer.File,
   ) {
-    const { role, userId: loggedInID } = req.user as {
-      email: string;
-      userId: string;
-      role: string;
-    };
+    const { userId: loggedInID } = req.user;
     // ? ONLY USERS CAN UPDATE THEIR OWN ACCOUNT
 
     if (id !== loggedInID) {
-      throw new UnauthorizedException();
+      throw new ForbiddenException('This is not your resource');
     }
 
     // * Retrieve user from db if it exist else throw an EXCEPTION
@@ -74,18 +138,15 @@ export class UserService {
     }
 
     // * UPLOAD PROFILE IMAGE OF THE USER => URL (string) or UNDEFINED||NULL||ERROR
-    const imageUrl = await updateImage(image, 'profile');
+    const imageUrl = await uploadProfileImage(image, 'profile');
 
     //  ! NOT ALL FIELDS ARE REQUIRED TO BE UPDATED, ONLY UPDATE AVAILABLE DTO FIELDS
     // * Return old user data if it isnt update.
     const updatedUserData = await this.prisma.user.update({
       where: { id: id },
       data: {
-        address: updateUserDto.address ?? user.address,
         name: updateUserDto.name ?? user.name,
         hashedPassword: updateUserDto.password ?? user.hashedPassword,
-        state: updateUserDto.state ?? user.state,
-        region: updateUserDto.region ?? user.region,
         profileImg: imageUrl ?? user.profileImg,
       },
     });
@@ -96,10 +157,12 @@ export class UserService {
       );
     }
 
-    return { message: 'User updated successfully' };
+    return res
+      .status(HttpStatus.OK)
+      .json({ result: { message: 'User updated successfully' } });
   }
 
-  async remove(req: Request, id: string) {
+  async remove(req: Request, res: Response, id: string) {
     const { userId } = this.getUserFromRequest(req);
     if (userId !== id) {
       throw new UnauthorizedException();
@@ -107,10 +170,12 @@ export class UserService {
 
     const userToDelete = await this.prisma.user.delete({ where: { id: id } });
 
-    return { message: 'User deleted successfully' };
+    return res
+      .status(HttpStatus.OK)
+      .json({ result: { message: 'User deleted successfully' } });
   }
 
-  async notifications(userId: string) {
+  async notifications(res: Response, userId: string) {
     // *GET ALL UNREAD NOTIFICATION
     const all_notifications = await this.prisma.userNotification.findMany({
       where: { ownerId: userId, AND: { readStatus: false } },
@@ -124,7 +189,7 @@ export class UserService {
       const { id, notificationClip } = n;
       return { id, notificationClip };
     });
-    return { status: HttpStatus.OK, notifications };
+    return res.status(HttpStatus.OK).json({ result: notifications });
   }
 
   async notification(userId: string, notificationId: string) {

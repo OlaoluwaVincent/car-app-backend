@@ -9,11 +9,13 @@ import {
   UseGuards,
   UseInterceptors,
   UploadedFile,
+  Post,
+  Res,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { OnBoardingDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { Role, Roles } from 'src/auth/roles.decorator';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
@@ -27,8 +29,8 @@ export class UserController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.Admin)
   @Get()
-  findAll() {
-    return this.userService.findAll();
+  findAll(@Res() res: Response) {
+    return this.userService.findAll(res);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -36,24 +38,25 @@ export class UserController {
   @UseInterceptors(FileInterceptor('profileImage', { storage }))
   update(
     @Req() req: Request,
+    @Res() res: Response,
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
     @UploadedFile() image: Express.Multer.File,
   ) {
-    return this.userService.update(req, id, updateUserDto, image);
+    return this.userService.update(req, res, id, updateUserDto, image);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Req() req: Request, @Param('id') id: string) {
-    return this.userService.remove(req, id);
+  remove(@Req() req: Request, @Res() res: Response, @Param('id') id: string) {
+    return this.userService.remove(req, res, id);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('notifications')
-  notifications(@Req() req: Request) {
+  notifications(@Req() req: Request, @Res() res: Response) {
     const { userId } = req.user;
-    return this.userService.notifications(userId);
+    return this.userService.notifications(res, userId);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -70,5 +73,21 @@ export class UserController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.userService.findOne(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('billingaddress')
+  createAddress(
+    @Req() req: Request,
+    @Res() res: Response,
+    @Body() onBoarding: OnBoardingDto,
+  ) {
+    return this.userService.createOrUpdateBillingAddress(req, res, onBoarding);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('billingaddress/:id')
+  getAddress(@Param('id') id: string, @Res() res: Response) {
+    return this.userService.findBillingAddress(id, res);
   }
 }

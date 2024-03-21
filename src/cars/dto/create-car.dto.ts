@@ -129,8 +129,24 @@ export class CreateCarDto {
   bags?: string;
 
   @ApiProperty({
-    example: '3 Bags',
-    description: 'Bags',
+    example: '25',
+    description: 'Amount to be paid per kilometer if Mileage is exceeded',
+  })
+  @IsString()
+  @IsOptional()
+  pricePerKM?: string;
+
+  @ApiProperty({
+    example: '3',
+    description: 'Discount in percentage',
+  })
+  @IsString()
+  @IsOptional()
+  discount?: string;
+
+  @ApiProperty({
+    example: 'Extras',
+    description: 'Extra services requested',
   })
   @IsOptional()
   @ValidateNested()

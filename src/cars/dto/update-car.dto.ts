@@ -1,4 +1,10 @@
-import { IsArray, IsBoolean, IsOptional, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsBoolean,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class ExtrasDto {
@@ -92,18 +98,26 @@ export class UpdateCarDto {
   bags?: string;
 
   @ApiProperty({
-    example: '3',
-    description: 'Bags',
+    example: '25',
+    description: 'Amount to be paid per kilometer if Mileage is exceeded',
   })
   @IsString()
   @IsOptional()
   pricePerKM?: string;
 
   @ApiProperty({
-    example: '3 Bags',
-    description: 'Bags',
+    example: '3',
+    description: 'Discount in percentage',
   })
-  @IsArray()
+  @IsString()
   @IsOptional()
+  discount?: string;
+
+  @ApiProperty({
+    example: 'Extras',
+    description: 'Extra services requested',
+  })
+  @IsOptional()
+  @ValidateNested()
   extras?: ExtrasDto[];
 }

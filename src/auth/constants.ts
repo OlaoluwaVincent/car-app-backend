@@ -10,3 +10,9 @@ export const jwt_constants = {
   api_key: configService.get<string>('API_KEY'),
   api_secret: configService.get<string>('API_SECRET'),
 };
+
+export const cloudinary_constants = {
+  cloud_name: jwt_constants.cloud_name,
+  api_key: jwt_constants.api_key,
+  api_secret: jwt_constants.api_secret,
+};
